@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.hateoas.MediaTypes
 import org.springframework.http.MediaType
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
@@ -20,7 +21,7 @@ internal class ItemControllerTest {
 
     @Test
     @DisplayName("물품 생성시 201 Created 응답과 생성된 Item 정보가 온다")
-    fun testGetItems() {
+    fun testCreateItem() {
         val item = Item(
                 name = "맥북 프로 2015 13인치",
                 description = "작년에 산 맥북 프로 2015 13인치 기본형입니다.",
@@ -37,5 +38,7 @@ internal class ItemControllerTest {
                 .andExpect(jsonPath("description").value(item.description))
                 .andExpect(jsonPath("price").value(item.price))
                 .andExpect(jsonPath("saleStatus").value(SaleStatus.DRAFT.name))
+                .andExpect(jsonPath("_links").hasJsonPath())
+                .andExpect(jsonPath("_links.self").hasJsonPath())
     }
 }
