@@ -41,4 +41,23 @@ internal class ItemControllerTest {
                 .andExpect(jsonPath("_links").hasJsonPath())
                 .andExpect(jsonPath("_links.self").hasJsonPath())
     }
+
+    @Test
+    @DisplayName("잘못된 값으로 물품 생성시 400 Bad Request 응답")
+    fun testCreateItemByBadRequest() {
+        val item = Item(
+                name = "맥북 프로 2015 13인치",
+                description = "작년에 산 맥북 프로 2015 13인치 기본형입니다.",
+                price = -100
+        )
+
+        mockMvc.perform(post("/api/items")
+                .contentType(MediaType.APPLICATION_JSON_UTF8)
+                .content(jacksonObjectMapper().writeValueAsString(item)))
+                .andExpect(status().isBadRequest)
+                .andExpect(jsonPath("$.content[0].objectName").value("itemDto"))
+                .andExpect(jsonPath("$.content[0].field").value("price"))
+                .andExpect(jsonPath("$.content[0].rejectedValue").value("-100"))
+                .andExpect(jsonPath("$.content[0].defaultMessage").hasJsonPath())
+    }
 }

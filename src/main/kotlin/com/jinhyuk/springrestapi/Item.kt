@@ -1,6 +1,8 @@
 package com.jinhyuk.springrestapi
 
 import javax.persistence.*
+import javax.validation.constraints.Min
+import javax.validation.constraints.NotEmpty
 
 @Entity
 data class Item(
@@ -12,9 +14,9 @@ data class Item(
 )
 
 data class ItemDto(
-        val name: String,
-        val description: String,
-        val price: Int
+        @field:NotEmpty val name: String,
+        @field:NotEmpty val description: String,
+        @field:Min(0) val price: Int
 ) {
     fun toItem() = Item(
             name = name,
