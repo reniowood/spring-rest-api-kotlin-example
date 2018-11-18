@@ -8,8 +8,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.http.MediaType
 import org.springframework.test.web.servlet.MockMvc
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
@@ -140,5 +139,28 @@ internal class ItemControllerTest {
                 .andExpect(jsonPath("$.content[0].field").value("price"))
                 .andExpect(jsonPath("$.content[0].rejectedValue").value("-100000"))
                 .andExpect(jsonPath("$.content[0].defaultMessage").hasJsonPath())
+    }
+
+    @Test
+    @DisplayName("물품 조회시 200 OK 응답")
+    fun testGetItem() {
+        val item = Item(
+                name = "맥북 프로 2015 13인치",
+                description = "작년에 산 맥북 프로 2015 13인치 기본형입니다.",
+                price = 800000,
+                saleStatus = SaleStatus.FOR_SALE
+        )
+
+        val savedItem = itemRepository.save(item)
+
+        mockMvc.perform(get("/api/items/${savedItem.id}")
+                .contentType(MediaType.APPLICATION_JSON_UTF8)
+                .content(jacksonObjectMapper().writeValueAsString(savedItem)))
+                .andExpect(status().isOk)
+                .andExpect(jsonPath("id").value(savedItem.id!!))
+                .andExpect(jsonPath("name").value(savedItem.name))
+                .andExpect(jsonPath("description").value(savedItem.description))
+                .andExpect(jsonPath("price").value(savedItem.price))
+                .andExpect(jsonPath("saleStatus").value(savedItem.saleStatus.name))
     }
 }

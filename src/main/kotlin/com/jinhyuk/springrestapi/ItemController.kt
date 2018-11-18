@@ -13,6 +13,13 @@ import javax.validation.Valid
 @RequestMapping(path = ["/api/items"], produces = [MediaTypes.HAL_JSON_UTF8_VALUE])
 class ItemController(val itemRepository: ItemRepository) {
 
+    @GetMapping("/{id}")
+    fun getItem(@PathVariable("id") id: Int): ResponseEntity<Item> {
+        val item = itemRepository.findById(id).orElseThrow()
+
+        return ResponseEntity.ok(item)
+    }
+
     @PostMapping
     fun createItem(@Valid @RequestBody itemDto: ItemDto, errors: Errors): ResponseEntity<Any> {
         if (errors.hasErrors()) {
