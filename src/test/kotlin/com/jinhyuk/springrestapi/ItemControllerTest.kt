@@ -114,4 +114,31 @@ internal class ItemControllerTest {
                 .content(jacksonObjectMapper().writeValueAsBytes(updatedItem)))
                 .andExpect(status().isNotFound)
     }
+
+    @Test
+    @DisplayName("잘못된 값으로 수정 시 400 Bad Request 응답")
+    fun testModifyItemWithWrongValue() {
+        val item = Item(
+                name = "맥북 프로 2015 13인치",
+                description = "작년에 산 맥북 프로 2015 13인치 기본형입니다.",
+                price = 800000
+        )
+
+        val savedItem = itemRepository.save(item)
+
+        val updatedItem = Item(
+                name = "맥북 프로 2015 13인치",
+                description = "작년에 산 맥북 프로 2015 13인치 기본형입니다. 50만원으로 가격 인하합니다.",
+                price = -100000
+        )
+
+        mockMvc.perform(put("/api/items/${savedItem.id?.plus(1)}")
+                .contentType(MediaType.APPLICATION_JSON_UTF8)
+                .content(jacksonObjectMapper().writeValueAsBytes(updatedItem)))
+                .andExpect(status().isBadRequest)
+                .andExpect(jsonPath("$.content[0].objectName").value("itemDto"))
+                .andExpect(jsonPath("$.content[0].field").value("price"))
+                .andExpect(jsonPath("$.content[0].rejectedValue").value("-100000"))
+                .andExpect(jsonPath("$.content[0].defaultMessage").hasJsonPath())
+    }
 }

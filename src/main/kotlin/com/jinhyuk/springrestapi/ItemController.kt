@@ -28,7 +28,11 @@ class ItemController(val itemRepository: ItemRepository) {
     }
 
     @PutMapping("/{id}")
-    fun updateItem(@PathVariable("id") id: Int, @RequestBody itemDto: ItemDto): ResponseEntity<Resource<Item>> {
+    fun updateItem(@PathVariable("id") id: Int, @Valid @RequestBody itemDto: ItemDto, errors: Errors): ResponseEntity<out Any> {
+        if (errors.hasErrors()) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ErrorsResource(errors))
+        }
+
         return itemRepository.findById(id).map { item ->
             val newItem = item.copy(name = itemDto.name, description = itemDto.description, price = itemDto.price)
             val updatedItem = itemRepository.save(newItem)
