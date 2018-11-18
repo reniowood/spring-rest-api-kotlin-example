@@ -153,9 +153,7 @@ internal class ItemControllerTest {
 
         val savedItem = itemRepository.save(item)
 
-        mockMvc.perform(get("/api/items/${savedItem.id}")
-                .contentType(MediaType.APPLICATION_JSON_UTF8)
-                .content(jacksonObjectMapper().writeValueAsString(savedItem)))
+        mockMvc.perform(get("/api/items/${savedItem.id}"))
                 .andExpect(status().isOk)
                 .andExpect(jsonPath("id").value(savedItem.id!!))
                 .andExpect(jsonPath("name").value(savedItem.name))
@@ -178,9 +176,7 @@ internal class ItemControllerTest {
 
         val savedItem = itemRepository.save(item)
 
-        mockMvc.perform(get("/api/items/${savedItem.id?.plus(1)}")
-                .contentType(MediaType.APPLICATION_JSON_UTF8)
-                .content(jacksonObjectMapper().writeValueAsString(savedItem)))
+        mockMvc.perform(get("/api/items/${savedItem.id?.plus(1)}"))
                 .andExpect(status().isNotFound)
     }
 }
