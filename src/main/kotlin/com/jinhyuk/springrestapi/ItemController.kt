@@ -6,10 +6,7 @@ import org.springframework.hateoas.mvc.ControllerLinkBuilder.linkTo
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.validation.Errors
-import org.springframework.web.bind.annotation.PostMapping
-import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
 import javax.validation.Valid
 
 @RestController
@@ -28,5 +25,16 @@ class ItemController(val itemRepository: ItemRepository) {
         itemResource.add(linkTo(ItemController::class.java).slash(createdItem.id).withSelfRel())
 
         return ResponseEntity.status(HttpStatus.CREATED).body(itemResource)
+    }
+
+    @PutMapping("/{id}")
+    fun updateItem(@PathVariable("id") id: Int, @RequestBody itemDto: ItemDto): ResponseEntity<Resource<Item>> {
+        val oldItem = itemRepository.findById(id).orElseThrow()
+        val newItem = oldItem.copy(name = itemDto.name, description = itemDto.description, price = itemDto.price)
+        val updatedItem = itemRepository.save(newItem)
+        val itemResource = Resource(updatedItem)
+        itemResource.add(linkTo(ItemController::class.java).slash(updatedItem.id).withSelfRel())
+
+        return ResponseEntity.ok(itemResource)
     }
 }
