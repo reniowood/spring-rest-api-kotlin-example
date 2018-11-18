@@ -81,7 +81,7 @@ internal class ItemControllerTest {
 
         mockMvc.perform(put("/api/items/${savedItem.id}")
                 .contentType(MediaType.APPLICATION_JSON_UTF8)
-                .content(jacksonObjectMapper().writeValueAsBytes(updatedItem)))
+                .content(jacksonObjectMapper().writeValueAsString(updatedItem)))
                 .andExpect(status().isOk)
                 .andExpect(jsonPath("id").value(savedItem.id!!))
                 .andExpect(jsonPath("name").value(savedItem.name))
@@ -111,7 +111,7 @@ internal class ItemControllerTest {
 
         mockMvc.perform(put("/api/items/${savedItem.id?.plus(1)}")
                 .contentType(MediaType.APPLICATION_JSON_UTF8)
-                .content(jacksonObjectMapper().writeValueAsBytes(updatedItem)))
+                .content(jacksonObjectMapper().writeValueAsString(updatedItem)))
                 .andExpect(status().isNotFound)
     }
 
@@ -134,7 +134,7 @@ internal class ItemControllerTest {
 
         mockMvc.perform(put("/api/items/${savedItem.id?.plus(1)}")
                 .contentType(MediaType.APPLICATION_JSON_UTF8)
-                .content(jacksonObjectMapper().writeValueAsBytes(updatedItem)))
+                .content(jacksonObjectMapper().writeValueAsString(updatedItem)))
                 .andExpect(status().isBadRequest)
                 .andExpect(jsonPath("$.content[0].objectName").value("itemDto"))
                 .andExpect(jsonPath("$.content[0].field").value("price"))
