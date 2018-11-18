@@ -14,8 +14,13 @@ import javax.validation.Valid
 class ItemController(val itemRepository: ItemRepository) {
 
     @GetMapping("/{id}")
-    fun getItem(@PathVariable("id") id: Int): ResponseEntity<Item> {
-        return itemRepository.findById(id).map { ResponseEntity.ok(it) }.orElseGet { ResponseEntity.notFound().build() }
+    fun getItem(@PathVariable("id") id: Int): ResponseEntity<Resource<Item>> {
+        return itemRepository.findById(id).map { item ->
+            val itemResource = Resource(item)
+            itemResource.add(linkTo(ItemController::class.java).slash(item.id).withSelfRel())
+
+            ResponseEntity.ok(itemResource)
+        }.orElseGet { ResponseEntity.notFound().build() }
     }
 
     @PostMapping

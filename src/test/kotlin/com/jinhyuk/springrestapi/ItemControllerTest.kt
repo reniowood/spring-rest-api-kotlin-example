@@ -162,6 +162,8 @@ internal class ItemControllerTest {
                 .andExpect(jsonPath("description").value(savedItem.description))
                 .andExpect(jsonPath("price").value(savedItem.price))
                 .andExpect(jsonPath("saleStatus").value(savedItem.saleStatus.name))
+                .andExpect(jsonPath("_links").hasJsonPath())
+                .andExpect(jsonPath("_links.self").hasJsonPath())
     }
 
     @Test
