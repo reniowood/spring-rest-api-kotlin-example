@@ -15,9 +15,7 @@ class ItemController(val itemRepository: ItemRepository) {
 
     @GetMapping("/{id}")
     fun getItem(@PathVariable("id") id: Int): ResponseEntity<Item> {
-        val item = itemRepository.findById(id).orElseThrow()
-
-        return ResponseEntity.ok(item)
+        return itemRepository.findById(id).map { ResponseEntity.ok(it) }.orElseGet { ResponseEntity.notFound().build() }
     }
 
     @PostMapping

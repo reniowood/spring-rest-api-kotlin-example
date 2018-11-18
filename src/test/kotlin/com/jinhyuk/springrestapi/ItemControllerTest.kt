@@ -163,4 +163,22 @@ internal class ItemControllerTest {
                 .andExpect(jsonPath("price").value(savedItem.price))
                 .andExpect(jsonPath("saleStatus").value(savedItem.saleStatus.name))
     }
+
+    @Test
+    @DisplayName("없는 물품 조회시 404 Not Found 응답")
+    fun testGetItemWithWrongId() {
+        val item = Item(
+                name = "맥북 프로 2015 13인치",
+                description = "작년에 산 맥북 프로 2015 13인치 기본형입니다.",
+                price = 800000,
+                saleStatus = SaleStatus.FOR_SALE
+        )
+
+        val savedItem = itemRepository.save(item)
+
+        mockMvc.perform(get("/api/items/${savedItem.id?.plus(1)}")
+                .contentType(MediaType.APPLICATION_JSON_UTF8)
+                .content(jacksonObjectMapper().writeValueAsString(savedItem)))
+                .andExpect(status().isNotFound)
+    }
 }
