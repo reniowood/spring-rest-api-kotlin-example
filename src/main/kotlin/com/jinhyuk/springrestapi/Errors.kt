@@ -4,7 +4,10 @@ import com.fasterxml.jackson.core.JsonGenerator
 import com.fasterxml.jackson.databind.JsonSerializer
 import com.fasterxml.jackson.databind.SerializerProvider
 import org.springframework.boot.jackson.JsonComponent
+import org.springframework.hateoas.Resource
 import org.springframework.validation.Errors
+
+data class ErrorsResource(val errors: Errors): Resource<Errors>(errors)
 
 @JsonComponent
 class ErrorsSerializer: JsonSerializer<Errors>() {
