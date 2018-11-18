@@ -29,12 +29,15 @@ class ItemController(val itemRepository: ItemRepository) {
 
     @PutMapping("/{id}")
     fun updateItem(@PathVariable("id") id: Int, @RequestBody itemDto: ItemDto): ResponseEntity<Resource<Item>> {
-        val oldItem = itemRepository.findById(id).orElseThrow()
-        val newItem = oldItem.copy(name = itemDto.name, description = itemDto.description, price = itemDto.price)
-        val updatedItem = itemRepository.save(newItem)
-        val itemResource = Resource(updatedItem)
-        itemResource.add(linkTo(ItemController::class.java).slash(updatedItem.id).withSelfRel())
+        return itemRepository.findById(id).map { item ->
+            val newItem = item.copy(name = itemDto.name, description = itemDto.description, price = itemDto.price)
+            val updatedItem = itemRepository.save(newItem)
+            val itemResource = Resource(updatedItem)
+            itemResource.add(linkTo(ItemController::class.java).slash(updatedItem.id).withSelfRel())
 
-        return ResponseEntity.ok(itemResource)
+            ResponseEntity.ok(itemResource)
+        }.orElseGet {
+            ResponseEntity.notFound().build()
+        }
     }
 }
