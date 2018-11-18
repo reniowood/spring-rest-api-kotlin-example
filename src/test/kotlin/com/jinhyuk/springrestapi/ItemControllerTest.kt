@@ -4,6 +4,7 @@ import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.http.MediaType
@@ -12,6 +13,7 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
+import java.util.stream.IntStream
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -178,5 +180,33 @@ internal class ItemControllerTest {
 
         mockMvc.perform(get("/api/items/${savedItem.id?.plus(1)}"))
                 .andExpect(status().isNotFound)
+    }
+
+    @Test
+    @DisplayName("물품 목록 조회시 200 OK 응답")
+    fun testGetItems() {
+        val totalSize = 35
+        IntStream.rangeClosed(1, totalSize).forEach {
+            val item = Item(
+                    name = "iPhone ${it}",
+                    description = "iPhone ${it} 16GB입니다.",
+                    price = it * 100000
+            )
+
+            itemRepository.save(item)
+        }
+
+        val pageSize = 20
+
+        mockMvc.perform(get("/api/items?page=1"))
+                .andExpect(status().isOk)
+                .andDo(MockMvcResultHandlers.print())
+                .andExpect(jsonPath("content").isArray)
+                .andExpect(jsonPath("numberOfElements").value(totalSize - pageSize))
+                .andExpect(jsonPath("size").value(pageSize))
+                .andExpect(jsonPath("totalElements").value(totalSize))
+                .andExpect(jsonPath("totalPages").value(2))
+                .andExpect(jsonPath("number").value(1))
+                .andExpect(jsonPath("empty").value(false))
     }
 }

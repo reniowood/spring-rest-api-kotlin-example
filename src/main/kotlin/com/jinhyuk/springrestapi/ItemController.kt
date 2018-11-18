@@ -1,5 +1,7 @@
 package com.jinhyuk.springrestapi
 
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.Pageable
 import org.springframework.hateoas.MediaTypes
 import org.springframework.hateoas.Resource
 import org.springframework.hateoas.mvc.ControllerLinkBuilder.linkTo
@@ -12,6 +14,11 @@ import javax.validation.Valid
 @RestController
 @RequestMapping(path = ["/api/items"], produces = [MediaTypes.HAL_JSON_UTF8_VALUE])
 class ItemController(val itemRepository: ItemRepository) {
+
+    @GetMapping
+    fun getItems(pageable: Pageable): ResponseEntity<Page<Item>> {
+        return ResponseEntity.ok(itemRepository.findAll(pageable))
+    }
 
     @GetMapping("/{id}")
     fun getItem(@PathVariable("id") id: Int): ResponseEntity<Resource<Item>> {
