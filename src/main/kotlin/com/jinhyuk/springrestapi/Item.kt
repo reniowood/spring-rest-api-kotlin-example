@@ -1,5 +1,8 @@
 package com.jinhyuk.springrestapi
 
+import org.springframework.hateoas.Link
+import org.springframework.hateoas.Resource
+import org.springframework.hateoas.mvc.ControllerLinkBuilder.linkTo
 import javax.persistence.*
 import javax.validation.constraints.Min
 import javax.validation.constraints.NotEmpty
@@ -27,4 +30,10 @@ data class ItemDto(
 
 enum class SaleStatus {
     DRAFT, FOR_SALE, RESERVED, SOLD
+}
+
+class ItemResource(item: Item) : Resource<Item>(item) {
+    init {
+        add(linkTo(ItemController::class.java).slash(item.id).withSelfRel())
+    }
 }

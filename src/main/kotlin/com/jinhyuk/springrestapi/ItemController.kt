@@ -5,8 +5,6 @@ import org.springframework.data.web.PageableDefault
 import org.springframework.data.web.PagedResourcesAssembler
 import org.springframework.hateoas.MediaTypes
 import org.springframework.hateoas.PagedResources
-import org.springframework.hateoas.Resource
-import org.springframework.hateoas.mvc.ControllerLinkBuilder.linkTo
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.validation.Errors
@@ -18,21 +16,18 @@ import javax.validation.Valid
 class ItemController(val itemRepository: ItemRepository) {
 
     @GetMapping
-    fun getItems(@PageableDefault pageable: Pageable, assembler: PagedResourcesAssembler<Item>): ResponseEntity<PagedResources<Resource<Item>>> {
+    fun getItems(@PageableDefault pageable: Pageable, assembler: PagedResourcesAssembler<Item>): ResponseEntity<PagedResources<ItemResource>> {
         val items = itemRepository.findAll(pageable)
-        val itemsResource = assembler.toResource(items)
+        val itemsResource = assembler.toResource(items) { ItemResource(it) }
 
         return ResponseEntity.ok(itemsResource)
     }
 
     @GetMapping("/{id}")
-    fun getItem(@PathVariable("id") id: Int): ResponseEntity<Resource<Item>> {
-        return itemRepository.findById(id).map { item ->
-            val itemResource = Resource(item)
-            itemResource.add(linkTo(ItemController::class.java).slash(item.id).withSelfRel())
-
-            ResponseEntity.ok(itemResource)
-        }.orElseGet { ResponseEntity.notFound().build() }
+    fun getItem(@PathVariable("id") id: Int): ResponseEntity<ItemResource> {
+        return itemRepository.findById(id)
+                .map { ResponseEntity.ok(ItemResource(it)) }
+                .orElseGet { ResponseEntity.notFound().build() }
     }
 
     @PostMapping
@@ -43,8 +38,7 @@ class ItemController(val itemRepository: ItemRepository) {
 
         val item = itemDto.toItem()
         val createdItem = itemRepository.save(item)
-        val itemResource = Resource(createdItem)
-        itemResource.add(linkTo(ItemController::class.java).slash(createdItem.id).withSelfRel())
+        val itemResource = ItemResource(createdItem)
 
         return ResponseEntity.status(HttpStatus.CREATED).body(itemResource)
     }
@@ -58,8 +52,7 @@ class ItemController(val itemRepository: ItemRepository) {
         return itemRepository.findById(id).map { item ->
             val newItem = item.copy(name = itemDto.name, description = itemDto.description, price = itemDto.price)
             val updatedItem = itemRepository.save(newItem)
-            val itemResource = Resource(updatedItem)
-            itemResource.add(linkTo(ItemController::class.java).slash(updatedItem.id).withSelfRel())
+            val itemResource = ItemResource(updatedItem)
 
             ResponseEntity.ok(itemResource)
         }.orElseGet {

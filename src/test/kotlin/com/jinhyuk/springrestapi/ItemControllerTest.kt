@@ -4,7 +4,6 @@ import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.http.MediaType
@@ -198,6 +197,7 @@ internal class ItemControllerTest {
         mockMvc.perform(get("/api/items?page=1"))
                 .andExpect(status().isOk)
                 .andDo(MockMvcResultHandlers.print())
+                .andExpect(jsonPath("_embedded.itemList[0]._links").hasJsonPath())
                 .andExpect(jsonPath("_links").hasJsonPath())
                 .andExpect(jsonPath("_links.self").hasJsonPath())
                 .andExpect(jsonPath("_links.prev").hasJsonPath())
