@@ -185,8 +185,7 @@ internal class ItemControllerTest {
     @Test
     @DisplayName("물품 목록 조회시 200 OK 응답")
     fun testGetItems() {
-        val totalSize = 35
-        IntStream.rangeClosed(1, totalSize).forEach {
+        IntStream.rangeClosed(1, 40 ).forEach {
             val item = Item(
                     name = "iPhone ${it}",
                     description = "iPhone ${it} 16GB입니다.",
@@ -196,17 +195,12 @@ internal class ItemControllerTest {
             itemRepository.save(item)
         }
 
-        val pageSize = 20
-
         mockMvc.perform(get("/api/items?page=1"))
                 .andExpect(status().isOk)
                 .andDo(MockMvcResultHandlers.print())
-                .andExpect(jsonPath("content").isArray)
-                .andExpect(jsonPath("numberOfElements").value(totalSize - pageSize))
-                .andExpect(jsonPath("size").value(pageSize))
-                .andExpect(jsonPath("totalElements").value(totalSize))
-                .andExpect(jsonPath("totalPages").value(2))
-                .andExpect(jsonPath("number").value(1))
-                .andExpect(jsonPath("empty").value(false))
+                .andExpect(jsonPath("_links").hasJsonPath())
+                .andExpect(jsonPath("_links.self").hasJsonPath())
+                .andExpect(jsonPath("_links.prev").hasJsonPath())
+                .andExpect(jsonPath("_links.next").hasJsonPath())
     }
 }
