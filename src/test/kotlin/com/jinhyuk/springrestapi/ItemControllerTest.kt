@@ -4,9 +4,14 @@ import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.test.autoconfigure.restdocs.AutoConfigureRestDocs
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.hateoas.Link
 import org.springframework.http.MediaType
+import org.springframework.restdocs.hypermedia.HypermediaDocumentation.*
+import org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document
+import org.springframework.restdocs.payload.PayloadDocumentation.*
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers
@@ -16,6 +21,7 @@ import java.util.stream.IntStream
 
 @SpringBootTest
 @AutoConfigureMockMvc
+@AutoConfigureRestDocs
 internal class ItemControllerTest {
     @Autowired lateinit var mockMvc: MockMvc
     @Autowired lateinit var itemRepository: ItemRepository
@@ -23,7 +29,7 @@ internal class ItemControllerTest {
     @Test
     @DisplayName("물품 생성시 201 Created 응답과 생성된 Item 정보가 온다")
     fun testCreateItem() {
-        val item = Item(
+        val item = ItemDto(
                 name = "맥북 프로 2015 13인치",
                 description = "작년에 산 맥북 프로 2015 13인치 기본형입니다.",
                 price = 800000
@@ -41,6 +47,21 @@ internal class ItemControllerTest {
                 .andExpect(jsonPath("saleStatus").value(SaleStatus.DRAFT.name))
                 .andExpect(jsonPath("_links").hasJsonPath())
                 .andExpect(jsonPath("_links.self").hasJsonPath())
+                .andDo(document("create-event", links(
+                    halLinks(),
+                    linkWithRel(Link.REL_SELF).description("link to self")
+                ), requestFields(
+                    fieldWithPath("name").description("name of item"),
+                    fieldWithPath("description").description("description of item"),
+                    fieldWithPath("price").description("price of item")
+                ), responseFields(
+                    fieldWithPath("id").description("id of item"),
+                    fieldWithPath("name").description("name of item"),
+                    fieldWithPath("description").description("description of item"),
+                    fieldWithPath("price").description("price of item"),
+                    fieldWithPath("saleStatus").description("sale status of item"),
+                    subsectionWithPath("_links").description("links to other resources")
+                )))
     }
 
     @Test
@@ -90,6 +111,22 @@ internal class ItemControllerTest {
                 .andExpect(jsonPath("price").value(updatedItem.price))
                 .andExpect(jsonPath("_links").hasJsonPath())
                 .andExpect(jsonPath("_links.self").hasJsonPath())
+                .andDo(document("modify-event", links(
+                    halLinks(),
+                    linkWithRel(Link.REL_SELF).description("link to self")
+                ), relaxedRequestFields(
+                    fieldWithPath("name").description("name of item"),
+                    fieldWithPath("description").description("description of item"),
+                    fieldWithPath("price").description("price of item"),
+                    fieldWithPath("saleStatus").description("sale status of item")
+                ), responseFields(
+                    fieldWithPath("id").description("id of item"),
+                    fieldWithPath("name").description("name of item"),
+                    fieldWithPath("description").description("description of item"),
+                    fieldWithPath("price").description("price of item"),
+                    fieldWithPath("saleStatus").description("sale status of item"),
+                    subsectionWithPath("_links").description("links to other resources")
+                )))
     }
 
     @Test
@@ -163,6 +200,17 @@ internal class ItemControllerTest {
                 .andExpect(jsonPath("saleStatus").value(savedItem.saleStatus.name))
                 .andExpect(jsonPath("_links").hasJsonPath())
                 .andExpect(jsonPath("_links.self").hasJsonPath())
+                .andDo(document("get-event", links(
+                    halLinks(),
+                    linkWithRel(Link.REL_SELF).description("link to self")
+                ), responseFields(
+                    fieldWithPath("id").description("id of item"),
+                    fieldWithPath("name").description("name of item"),
+                    fieldWithPath("description").description("description of item"),
+                    fieldWithPath("price").description("price of item"),
+                    fieldWithPath("saleStatus").description("sale status of item"),
+                    subsectionWithPath("_links").description("links to other resources")
+                )))
     }
 
     @Test
@@ -184,7 +232,7 @@ internal class ItemControllerTest {
     @Test
     @DisplayName("물품 목록 조회시 200 OK 응답")
     fun testGetItems() {
-        IntStream.rangeClosed(1, 40 ).forEach {
+        IntStream.rangeClosed(1, 40).forEach {
             val item = Item(
                     name = "iPhone ${it}",
                     description = "iPhone ${it} 16GB입니다.",
@@ -202,5 +250,22 @@ internal class ItemControllerTest {
                 .andExpect(jsonPath("_links.self").hasJsonPath())
                 .andExpect(jsonPath("_links.prev").hasJsonPath())
                 .andExpect(jsonPath("_links.next").hasJsonPath())
+                .andDo(document("get-events", links(
+                    halLinks(),
+                    linkWithRel(Link.REL_SELF).description("link to self"),
+                    linkWithRel(Link.REL_PREVIOUS).description("link to previous page of items"),
+                    linkWithRel(Link.REL_NEXT).description("link to next page of items"),
+                    linkWithRel(Link.REL_FIRST).description("link to first page of items"),
+                    linkWithRel(Link.REL_LAST).description("link to last page of items")
+                ), responseFields(
+                    fieldWithPath("_embedded.itemList[].id").description("id of item"),
+                    fieldWithPath("_embedded.itemList[].name").description("name of item"),
+                    fieldWithPath("_embedded.itemList[].description").description("description of item"),
+                    fieldWithPath("_embedded.itemList[].price").description("price of item"),
+                    fieldWithPath("_embedded.itemList[].saleStatus").description("sale status of item"),
+                    subsectionWithPath("_embedded.itemList[]._links").description("links to other resources"),
+                    subsectionWithPath("page").description("current page data"),
+                    subsectionWithPath("_links").description("links to other resources")
+                )))
     }
 }

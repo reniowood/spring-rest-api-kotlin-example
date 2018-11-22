@@ -1,6 +1,5 @@
 package com.jinhyuk.springrestapi
 
-import org.springframework.hateoas.Link
 import org.springframework.hateoas.Resource
 import org.springframework.hateoas.mvc.ControllerLinkBuilder.linkTo
 import javax.persistence.*
