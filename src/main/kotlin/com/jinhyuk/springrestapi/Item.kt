@@ -12,7 +12,8 @@ data class Item(
         val name: String,
         val description: String,
         val price: Int,
-        @Enumerated(EnumType.STRING) val saleStatus: SaleStatus = SaleStatus.DRAFT
+        @Enumerated(EnumType.STRING) val saleStatus: SaleStatus = SaleStatus.DRAFT,
+        @ManyToOne val owner: Account? = null
 )
 
 data class ItemDto(

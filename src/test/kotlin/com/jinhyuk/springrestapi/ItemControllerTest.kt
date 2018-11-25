@@ -62,6 +62,7 @@ internal class ItemControllerTest {
                     fieldWithPath("description").description("description of item"),
                     fieldWithPath("price").description("price of item"),
                     fieldWithPath("saleStatus").description("sale status of item"),
+                    fieldWithPath("owner").description("owner of item"),
                     subsectionWithPath("_links").description("links to other resources")
                 )))
     }
@@ -120,13 +121,15 @@ internal class ItemControllerTest {
                     fieldWithPath("name").description("name of item"),
                     fieldWithPath("description").description("description of item"),
                     fieldWithPath("price").description("price of item"),
-                    fieldWithPath("saleStatus").description("sale status of item")
+                    fieldWithPath("saleStatus").description("sale status of item"),
+                    fieldWithPath("owner").description("owner of item")
                 ), responseFields(
                     fieldWithPath("id").description("id of item"),
                     fieldWithPath("name").description("name of item"),
                     fieldWithPath("description").description("description of item"),
                     fieldWithPath("price").description("price of item"),
                     fieldWithPath("saleStatus").description("sale status of item"),
+                    fieldWithPath("owner").description("owner of item"),
                     subsectionWithPath("_links").description("links to other resources")
                 )))
     }
@@ -211,6 +214,7 @@ internal class ItemControllerTest {
                     fieldWithPath("description").description("description of item"),
                     fieldWithPath("price").description("price of item"),
                     fieldWithPath("saleStatus").description("sale status of item"),
+                    fieldWithPath("owner").description("owner of item"),
                     subsectionWithPath("_links").description("links to other resources")
                 )))
     }
@@ -265,6 +269,7 @@ internal class ItemControllerTest {
                     fieldWithPath("_embedded.itemList[].description").description("description of item"),
                     fieldWithPath("_embedded.itemList[].price").description("price of item"),
                     fieldWithPath("_embedded.itemList[].saleStatus").description("sale status of item"),
+                    fieldWithPath("_embedded.itemList[].owner").description("owner of item"),
                     subsectionWithPath("_embedded.itemList[]._links").description("links to other resources"),
                     subsectionWithPath("page").description("current page data"),
                     subsectionWithPath("_links").description("links to other resources")
