@@ -1,5 +1,6 @@
-package com.jinhyuk.springrestapi
+package com.jinhyuk.springrestapi.items
 
+import com.jinhyuk.springrestapi.accounts.Account
 import org.springframework.hateoas.Resource
 import org.springframework.hateoas.mvc.ControllerLinkBuilder.linkTo
 import javax.persistence.*

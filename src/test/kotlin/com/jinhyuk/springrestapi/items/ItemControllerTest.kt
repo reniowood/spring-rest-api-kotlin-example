@@ -1,6 +1,10 @@
-package com.jinhyuk.springrestapi
+package com.jinhyuk.springrestapi.items
 
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import com.jinhyuk.springrestapi.items.Item
+import com.jinhyuk.springrestapi.items.ItemDto
+import com.jinhyuk.springrestapi.items.ItemRepository
+import com.jinhyuk.springrestapi.items.SaleStatus
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired

@@ -1,4 +1,4 @@
-package com.jinhyuk.springrestapi
+package com.jinhyuk.springrestapi.accounts
 
 import javax.persistence.*
 

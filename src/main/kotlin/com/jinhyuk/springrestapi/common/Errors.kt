@@ -1,4 +1,4 @@
-package com.jinhyuk.springrestapi
+package com.jinhyuk.springrestapi.common
 
 import com.fasterxml.jackson.core.JsonGenerator
 import com.fasterxml.jackson.databind.JsonSerializer

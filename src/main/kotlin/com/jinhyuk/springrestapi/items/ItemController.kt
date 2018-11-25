@@ -1,5 +1,6 @@
-package com.jinhyuk.springrestapi
+package com.jinhyuk.springrestapi.items
 
+import com.jinhyuk.springrestapi.common.ErrorsResource
 import org.springframework.data.domain.Pageable
 import org.springframework.data.web.PageableDefault
 import org.springframework.data.web.PagedResourcesAssembler
