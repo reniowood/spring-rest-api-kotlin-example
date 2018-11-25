@@ -12,6 +12,7 @@ import org.springframework.http.MediaType
 import org.springframework.restdocs.hypermedia.HypermediaDocumentation.*
 import org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document
 import org.springframework.restdocs.payload.PayloadDocumentation.*
+import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers
@@ -22,6 +23,7 @@ import java.util.stream.IntStream
 @SpringBootTest
 @AutoConfigureMockMvc
 @AutoConfigureRestDocs
+@ActiveProfiles("test")
 internal class ItemControllerTest {
     @Autowired lateinit var mockMvc: MockMvc
     @Autowired lateinit var itemRepository: ItemRepository
