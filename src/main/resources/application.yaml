@@ -3,3 +3,10 @@ spring:
     url: jdbc:mysql://localhost:3306/market
     username: root
     password: test
+  jpa:
+    hibernate:
+      ddl-auto: create
+
+my-app:
+  client-id: myApp
+  client-secret: secret

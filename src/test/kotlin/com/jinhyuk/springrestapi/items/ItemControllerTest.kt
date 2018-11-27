@@ -1,8 +1,15 @@
 package com.jinhyuk.springrestapi.items
 
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import org.junit.jupiter.api.DisplayName
-import org.junit.jupiter.api.Test
+import com.fasterxml.jackson.module.kotlin.readValue
+import com.jinhyuk.springrestapi.accounts.Account
+import com.jinhyuk.springrestapi.accounts.AccountRole
+import com.jinhyuk.springrestapi.accounts.AccountService
+import com.jinhyuk.springrestapi.configs.MyAppProperties
+import org.junit.BeforeClass
+import org.junit.jupiter.api.*
+import org.junit.jupiter.api.extension.ExtendWith
+import org.junit.runner.RunWith
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.restdocs.AutoConfigureRestDocs
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
@@ -12,7 +19,11 @@ import org.springframework.http.MediaType
 import org.springframework.restdocs.hypermedia.HypermediaDocumentation.*
 import org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document
 import org.springframework.restdocs.payload.PayloadDocumentation.*
+import org.springframework.security.oauth2.common.util.Jackson2JsonParser
+import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors
 import org.springframework.test.context.ActiveProfiles
+import org.springframework.test.context.junit.jupiter.SpringExtension
+import org.springframework.test.context.junit4.SpringRunner
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers
@@ -20,6 +31,7 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPat
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import java.util.stream.IntStream
 
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @SpringBootTest
 @AutoConfigureMockMvc
 @AutoConfigureRestDocs
@@ -27,10 +39,22 @@ import java.util.stream.IntStream
 internal class ItemControllerTest {
     @Autowired lateinit var mockMvc: MockMvc
     @Autowired lateinit var itemRepository: ItemRepository
+    @Autowired lateinit var accountService: AccountService
+    @Autowired lateinit var myAppProperties: MyAppProperties
+
+    private val email = "test@email.com"
+    private val password = "test"
+    private val account = Account(email = email, password = password, roles = setOf(AccountRole.ADMIN))
+
+    @BeforeAll
+    fun setUp() {
+        accountService.createAccount(account)
+    }
 
     @Test
     @DisplayName("물품 생성시 201 Created 응답과 생성된 Item 정보가 온다")
     fun testCreateItem() {
+        val accessToken = getAccessToken()
         val item = ItemDto(
                 name = "맥북 프로 2015 13인치",
                 description = "작년에 산 맥북 프로 2015 13인치 기본형입니다.",
@@ -38,6 +62,7 @@ internal class ItemControllerTest {
         )
 
         mockMvc.perform(post("/api/items")
+                .header("Authorization", "Bearer $accessToken")
                 .contentType(MediaType.APPLICATION_JSON_UTF8)
                 .content(jacksonObjectMapper().writeValueAsString(item)))
                 .andDo(MockMvcResultHandlers.print())
@@ -70,6 +95,7 @@ internal class ItemControllerTest {
     @Test
     @DisplayName("잘못된 값으로 물품 생성시 400 Bad Request 응답")
     fun testCreateItemByBadRequest() {
+        val accessToken = getAccessToken()
         val item = Item(
                 name = "맥북 프로 2015 13인치",
                 description = "작년에 산 맥북 프로 2015 13인치 기본형입니다.",
@@ -77,6 +103,7 @@ internal class ItemControllerTest {
         )
 
         mockMvc.perform(post("/api/items")
+                .header("Authorization", "Bearer $accessToken")
                 .contentType(MediaType.APPLICATION_JSON_UTF8)
                 .content(jacksonObjectMapper().writeValueAsString(item)))
                 .andExpect(status().isBadRequest)
@@ -89,6 +116,7 @@ internal class ItemControllerTest {
     @Test
     @DisplayName("물품 수정시 200 OK 응답")
     fun testModifyItem() {
+        val accessToken = getAccessToken()
         val item = Item(
                 name = "맥북 프로 2015 13인치",
                 description = "작년에 산 맥북 프로 2015 13인치 기본형입니다.",
@@ -104,6 +132,7 @@ internal class ItemControllerTest {
         )
 
         mockMvc.perform(put("/api/items/${savedItem.id}")
+                .header("Authorization", "Bearer $accessToken")
                 .contentType(MediaType.APPLICATION_JSON_UTF8)
                 .content(jacksonObjectMapper().writeValueAsString(updatedItem)))
                 .andExpect(status().isOk)
@@ -137,6 +166,7 @@ internal class ItemControllerTest {
     @Test
     @DisplayName("없는 물품 수정시 404 Not Found 응답")
     fun testModifyItemWithWrongId() {
+        val accessToken = getAccessToken()
         val item = Item(
                 name = "맥북 프로 2015 13인치",
                 description = "작년에 산 맥북 프로 2015 13인치 기본형입니다.",
@@ -152,6 +182,7 @@ internal class ItemControllerTest {
         )
 
         mockMvc.perform(put("/api/items/${savedItem.id?.plus(1)}")
+                .header("Authorization", "Bearer $accessToken")
                 .contentType(MediaType.APPLICATION_JSON_UTF8)
                 .content(jacksonObjectMapper().writeValueAsString(updatedItem)))
                 .andExpect(status().isNotFound)
@@ -160,6 +191,7 @@ internal class ItemControllerTest {
     @Test
     @DisplayName("잘못된 값으로 수정 시 400 Bad Request 응답")
     fun testModifyItemWithWrongValue() {
+        val accessToken = getAccessToken()
         val item = Item(
                 name = "맥북 프로 2015 13인치",
                 description = "작년에 산 맥북 프로 2015 13인치 기본형입니다.",
@@ -175,6 +207,7 @@ internal class ItemControllerTest {
         )
 
         mockMvc.perform(put("/api/items/${savedItem.id?.plus(1)}")
+                .header("Authorization", "Bearer $accessToken")
                 .contentType(MediaType.APPLICATION_JSON_UTF8)
                 .content(jacksonObjectMapper().writeValueAsString(updatedItem)))
                 .andExpect(status().isBadRequest)
@@ -274,5 +307,18 @@ internal class ItemControllerTest {
                     subsectionWithPath("page").description("current page data"),
                     subsectionWithPath("_links").description("links to other resources")
                 )))
+    }
+
+    private fun getAccessToken(): String {
+        val result = mockMvc.perform(post("/oauth/token")
+                .with(SecurityMockMvcRequestPostProcessors.httpBasic(myAppProperties.clientId, myAppProperties.clientSecret))
+                .accept(MediaType.APPLICATION_JSON_UTF8)
+                .param("grant_type", "password")
+                .param("username", email)
+                .param("password", password))
+
+        val response = result.andReturn().response.contentAsString
+
+        return jacksonObjectMapper().readValue<Map<String, String>>(response)["access_token"].orEmpty()
     }
 }
