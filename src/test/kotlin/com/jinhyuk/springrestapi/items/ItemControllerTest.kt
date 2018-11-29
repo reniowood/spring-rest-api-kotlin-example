@@ -254,6 +254,44 @@ internal class ItemControllerTest {
     }
 
     @Test
+    @DisplayName("인증 후 물품 조회시 응답에 수정 링크 추가")
+    fun testGetItemWithAccessToken() {
+        val item = Item(
+                name = "맥북 프로 2015 13인치",
+                description = "작년에 산 맥북 프로 2015 13인치 기본형입니다.",
+                price = 800000,
+                saleStatus = SaleStatus.FOR_SALE
+        )
+
+        val savedItem = itemRepository.save(item)
+
+        val accessToken = getAccessToken()
+
+        mockMvc.perform(get("/api/items/${savedItem.id}").header("Authorization", "Bearer $accessToken"))
+                .andExpect(status().isOk)
+                .andExpect(jsonPath("id").value(savedItem.id!!))
+                .andExpect(jsonPath("name").value(savedItem.name))
+                .andExpect(jsonPath("description").value(savedItem.description))
+                .andExpect(jsonPath("price").value(savedItem.price))
+                .andExpect(jsonPath("saleStatus").value(savedItem.saleStatus.name))
+                .andExpect(jsonPath("_links").hasJsonPath())
+                .andExpect(jsonPath("_links.self").hasJsonPath())
+                .andDo(document("get-event", links(
+                        halLinks(),
+                        linkWithRel(Link.REL_SELF).description("link to self"),
+                        linkWithRel("update").description("link to update the item")
+                ), responseFields(
+                        fieldWithPath("id").description("id of item"),
+                        fieldWithPath("name").description("name of item"),
+                        fieldWithPath("description").description("description of item"),
+                        fieldWithPath("price").description("price of item"),
+                        fieldWithPath("saleStatus").description("sale status of item"),
+                        fieldWithPath("owner").description("owner of item"),
+                        subsectionWithPath("_links").description("links to other resources")
+                )))
+    }
+
+    @Test
     @DisplayName("없는 물품 조회시 404 Not Found 응답")
     fun testGetItemWithWrongId() {
         val item = Item(
@@ -291,22 +329,22 @@ internal class ItemControllerTest {
                 .andExpect(jsonPath("_links.prev").hasJsonPath())
                 .andExpect(jsonPath("_links.next").hasJsonPath())
                 .andDo(document("get-events", links(
-                    halLinks(),
-                    linkWithRel(Link.REL_SELF).description("link to self"),
-                    linkWithRel(Link.REL_PREVIOUS).description("link to previous page of items"),
-                    linkWithRel(Link.REL_NEXT).description("link to next page of items"),
-                    linkWithRel(Link.REL_FIRST).description("link to first page of items"),
-                    linkWithRel(Link.REL_LAST).description("link to last page of items")
+                        halLinks(),
+                        linkWithRel(Link.REL_SELF).description("link to self"),
+                        linkWithRel(Link.REL_PREVIOUS).description("link to previous page of items"),
+                        linkWithRel(Link.REL_NEXT).description("link to next page of items"),
+                        linkWithRel(Link.REL_FIRST).description("link to first page of items"),
+                        linkWithRel(Link.REL_LAST).description("link to last page of items")
                 ), responseFields(
-                    fieldWithPath("_embedded.itemList[].id").description("id of item"),
-                    fieldWithPath("_embedded.itemList[].name").description("name of item"),
-                    fieldWithPath("_embedded.itemList[].description").description("description of item"),
-                    fieldWithPath("_embedded.itemList[].price").description("price of item"),
-                    fieldWithPath("_embedded.itemList[].saleStatus").description("sale status of item"),
-                    fieldWithPath("_embedded.itemList[].owner").description("owner of item"),
-                    subsectionWithPath("_embedded.itemList[]._links").description("links to other resources"),
-                    subsectionWithPath("page").description("current page data"),
-                    subsectionWithPath("_links").description("links to other resources")
+                        fieldWithPath("_embedded.itemList[].id").description("id of item"),
+                        fieldWithPath("_embedded.itemList[].name").description("name of item"),
+                        fieldWithPath("_embedded.itemList[].description").description("description of item"),
+                        fieldWithPath("_embedded.itemList[].price").description("price of item"),
+                        fieldWithPath("_embedded.itemList[].saleStatus").description("sale status of item"),
+                        fieldWithPath("_embedded.itemList[].owner").description("owner of item"),
+                        subsectionWithPath("_embedded.itemList[]._links").description("links to other resources"),
+                        subsectionWithPath("page").description("current page data"),
+                        subsectionWithPath("_links").description("links to other resources")
                 )))
     }
 

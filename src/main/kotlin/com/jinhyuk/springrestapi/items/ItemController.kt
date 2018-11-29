@@ -29,10 +29,15 @@ class ItemController(val itemRepository: ItemRepository) {
     }
 
     @GetMapping("/{id}")
-    fun getItem(@PathVariable("id") id: Int): ResponseEntity<ItemResource> {
-        return itemRepository.findById(id)
-                .map { ResponseEntity.ok(ItemResource(it)) }
-                .orElseGet { ResponseEntity.notFound().build() }
+    fun getItem(@PathVariable("id") id: Int, @CurrentUser account: Account?): ResponseEntity<ItemResource> {
+        val item = itemRepository.findById(id).orElse(null) ?: return ResponseEntity.notFound().build()
+        val itemResource = ItemResource(item)
+
+        if (account != null) {
+            itemResource.add(linkTo(ItemController::class.java).slash(id).withRel("update"))
+        }
+
+        return ResponseEntity.ok(itemResource)
     }
 
     @PostMapping
