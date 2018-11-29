@@ -7,6 +7,7 @@ import org.springframework.data.web.PageableDefault
 import org.springframework.data.web.PagedResourcesAssembler
 import org.springframework.hateoas.MediaTypes
 import org.springframework.hateoas.PagedResources
+import org.springframework.hateoas.mvc.ControllerLinkBuilder.linkTo
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.validation.Errors
@@ -18,9 +19,11 @@ import javax.validation.Valid
 class ItemController(val itemRepository: ItemRepository) {
 
     @GetMapping
-    fun getItems(@PageableDefault pageable: Pageable, assembler: PagedResourcesAssembler<Item>): ResponseEntity<PagedResources<ItemResource>> {
+    fun getItems(@PageableDefault pageable: Pageable, assembler: PagedResourcesAssembler<Item>, @CurrentUser account: Account?): ResponseEntity<PagedResources<ItemResource>> {
         val items = itemRepository.findAll(pageable)
-        val itemsResource = assembler.toResource(items) { ItemResource(it) }
+        val itemsResource = assembler
+                .toResource(items) { ItemResource(it) }
+                .also { if (account != null) it.add(linkTo(ItemController::class.java).withRel("create")) }
 
         return ResponseEntity.ok(itemsResource)
     }

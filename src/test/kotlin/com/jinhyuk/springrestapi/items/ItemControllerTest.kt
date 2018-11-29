@@ -310,6 +310,51 @@ internal class ItemControllerTest {
                 )))
     }
 
+    @Test
+    @DisplayName("인증 후 물품 목록 조회시 응답에 물품 생성 링크 추가")
+    fun testGetItemsWithAccessToken() {
+        IntStream.rangeClosed(1, 40).forEach {
+            val item = Item(
+                    name = "iPhone ${it}",
+                    description = "iPhone ${it} 16GB입니다.",
+                    price = it * 100000
+            )
+
+            itemRepository.save(item)
+        }
+
+        val accessToken = getAccessToken()
+
+        mockMvc.perform(get("/api/items?page=1").header("Authorization", "Bearer $accessToken"))
+                .andExpect(status().isOk)
+                .andDo(MockMvcResultHandlers.print())
+                .andExpect(jsonPath("_embedded.itemList[0]._links").hasJsonPath())
+                .andExpect(jsonPath("_links").hasJsonPath())
+                .andExpect(jsonPath("_links.self").hasJsonPath())
+                .andExpect(jsonPath("_links.prev").hasJsonPath())
+                .andExpect(jsonPath("_links.next").hasJsonPath())
+                .andExpect(jsonPath("_links.create").hasJsonPath())
+                .andDo(document("get-events", links(
+                        halLinks(),
+                        linkWithRel(Link.REL_SELF).description("link to self"),
+                        linkWithRel(Link.REL_PREVIOUS).description("link to previous page of items"),
+                        linkWithRel(Link.REL_NEXT).description("link to next page of items"),
+                        linkWithRel(Link.REL_FIRST).description("link to first page of items"),
+                        linkWithRel(Link.REL_LAST).description("link to last page of items"),
+                        linkWithRel("create").description("link to create an item")
+                ), responseFields(
+                        fieldWithPath("_embedded.itemList[].id").description("id of item"),
+                        fieldWithPath("_embedded.itemList[].name").description("name of item"),
+                        fieldWithPath("_embedded.itemList[].description").description("description of item"),
+                        fieldWithPath("_embedded.itemList[].price").description("price of item"),
+                        fieldWithPath("_embedded.itemList[].saleStatus").description("sale status of item"),
+                        fieldWithPath("_embedded.itemList[].owner").description("owner of item"),
+                        subsectionWithPath("_embedded.itemList[]._links").description("links to other resources"),
+                        subsectionWithPath("page").description("current page data"),
+                        subsectionWithPath("_links").description("links to other resources")
+                )))
+    }
+
     private fun getAccessToken(): String {
         val result = mockMvc.perform(post("/oauth/token")
                 .with(SecurityMockMvcRequestPostProcessors.httpBasic(myAppProperties.clientId, myAppProperties.clientSecret))
