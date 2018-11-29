@@ -88,6 +88,7 @@ internal class ItemControllerTest {
                     fieldWithPath("price").description("price of item"),
                     fieldWithPath("saleStatus").description("sale status of item"),
                     fieldWithPath("owner").description("owner of item"),
+                    fieldWithPath("owner.id").description("id of item owner"),
                     subsectionWithPath("_links").description("links to other resources")
                 )))
     }

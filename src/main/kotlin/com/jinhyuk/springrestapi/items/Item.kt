@@ -1,6 +1,8 @@
 package com.jinhyuk.springrestapi.items
 
+import com.fasterxml.jackson.databind.annotation.JsonSerialize
 import com.jinhyuk.springrestapi.accounts.Account
+import com.jinhyuk.springrestapi.accounts.AccountSerializer
 import org.springframework.hateoas.Resource
 import org.springframework.hateoas.mvc.ControllerLinkBuilder.linkTo
 import javax.persistence.*
@@ -14,7 +16,7 @@ data class Item(
         val description: String,
         val price: Int,
         @Enumerated(EnumType.STRING) val saleStatus: SaleStatus = SaleStatus.DRAFT,
-        @ManyToOne val owner: Account? = null
+        @ManyToOne @JsonSerialize(using = AccountSerializer::class) val owner: Account? = null
 )
 
 data class ItemDto(
@@ -22,10 +24,11 @@ data class ItemDto(
         @field:NotEmpty val description: String,
         @field:Min(0) val price: Int
 ) {
-    fun toItem() = Item(
+    fun toItem(account: Account) = Item(
             name = name,
             description = description,
-            price = price
+            price = price,
+            owner = account
     )
 }
 

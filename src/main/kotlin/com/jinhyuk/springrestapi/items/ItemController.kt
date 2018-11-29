@@ -1,5 +1,6 @@
 package com.jinhyuk.springrestapi.items
 
+import com.jinhyuk.springrestapi.accounts.Account
 import com.jinhyuk.springrestapi.common.ErrorsResource
 import org.springframework.data.domain.Pageable
 import org.springframework.data.web.PageableDefault
@@ -32,12 +33,12 @@ class ItemController(val itemRepository: ItemRepository) {
     }
 
     @PostMapping
-    fun createItem(@Valid @RequestBody itemDto: ItemDto, errors: Errors): ResponseEntity<Any> {
+    fun createItem(@Valid @RequestBody itemDto: ItemDto, errors: Errors, @CurrentUser account: Account): ResponseEntity<Any> {
         if (errors.hasErrors()) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ErrorsResource(errors))
         }
 
-        val item = itemDto.toItem()
+        val item = itemDto.toItem(account)
         val createdItem = itemRepository.save(item)
         val itemResource = ItemResource(createdItem)
 
