@@ -17,7 +17,7 @@ class AccountService(val accountRepository: AccountRepository): UserDetailsServi
     override fun loadUserByUsername(username: String?): UserDetails {
         val account = accountRepository.findByEmail(username) ?: throw UsernameNotFoundException(username)
 
-        return User(account.email, account.password, authorities(account.roles))
+        return AccountAdapter(account)
     }
 
     fun createAccount(account: Account) {
@@ -25,7 +25,4 @@ class AccountService(val accountRepository: AccountRepository): UserDetailsServi
 
         accountRepository.save(passwordEncodedAccount)
     }
-
-    private fun authorities(roles: Set<AccountRole>): Collection<out GrantedAuthority> =
-            roles.map { SimpleGrantedAuthority("ROLE_${it.name}") }
 }
