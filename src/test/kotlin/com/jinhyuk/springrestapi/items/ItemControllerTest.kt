@@ -6,10 +6,7 @@ import com.jinhyuk.springrestapi.accounts.Account
 import com.jinhyuk.springrestapi.accounts.AccountRole
 import com.jinhyuk.springrestapi.accounts.AccountService
 import com.jinhyuk.springrestapi.configs.MyAppProperties
-import org.junit.BeforeClass
 import org.junit.jupiter.api.*
-import org.junit.jupiter.api.extension.ExtendWith
-import org.junit.runner.RunWith
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.restdocs.AutoConfigureRestDocs
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
@@ -19,11 +16,8 @@ import org.springframework.http.MediaType
 import org.springframework.restdocs.hypermedia.HypermediaDocumentation.*
 import org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document
 import org.springframework.restdocs.payload.PayloadDocumentation.*
-import org.springframework.security.oauth2.common.util.Jackson2JsonParser
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors
 import org.springframework.test.context.ActiveProfiles
-import org.springframework.test.context.junit.jupiter.SpringExtension
-import org.springframework.test.context.junit4.SpringRunner
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers
@@ -44,11 +38,11 @@ internal class ItemControllerTest {
 
     private val email = "test@email.com"
     private val password = "test"
-    private val account = Account(email = email, password = password, roles = setOf(AccountRole.ADMIN))
+    private var account = Account(email = email, password = password, roles = setOf(AccountRole.ADMIN))
 
     @BeforeAll
     fun setUp() {
-        accountService.createAccount(account)
+        account = accountService.createAccount(account)
     }
 
     @Test
@@ -121,7 +115,8 @@ internal class ItemControllerTest {
         val item = Item(
                 name = "맥북 프로 2015 13인치",
                 description = "작년에 산 맥북 프로 2015 13인치 기본형입니다.",
-                price = 800000
+                price = 800000,
+                owner = account
         )
 
         val savedItem = itemRepository.save(item)
@@ -160,6 +155,7 @@ internal class ItemControllerTest {
                     fieldWithPath("price").description("price of item"),
                     fieldWithPath("saleStatus").description("sale status of item"),
                     fieldWithPath("owner").description("owner of item"),
+                    fieldWithPath("owner.id").description("id of item owner"),
                     subsectionWithPath("_links").description("links to other resources")
                 )))
     }
@@ -167,11 +163,11 @@ internal class ItemControllerTest {
     @Test
     @DisplayName("없는 물품 수정시 404 Not Found 응답")
     fun testModifyItemWithWrongId() {
-        val accessToken = getAccessToken()
         val item = Item(
                 name = "맥북 프로 2015 13인치",
                 description = "작년에 산 맥북 프로 2015 13인치 기본형입니다.",
-                price = 800000
+                price = 800000,
+                owner = account
         )
 
         val savedItem = itemRepository.save(item)
@@ -181,6 +177,8 @@ internal class ItemControllerTest {
                 description = "작년에 산 맥북 프로 2015 13인치 기본형입니다. 50만원으로 가격 인하합니다.",
                 price = 500000
         )
+
+        val accessToken = getAccessToken()
 
         mockMvc.perform(put("/api/items/${savedItem.id?.plus(1)}")
                 .header("Authorization", "Bearer $accessToken")
@@ -192,11 +190,11 @@ internal class ItemControllerTest {
     @Test
     @DisplayName("잘못된 값으로 수정 시 400 Bad Request 응답")
     fun testModifyItemWithWrongValue() {
-        val accessToken = getAccessToken()
         val item = Item(
                 name = "맥북 프로 2015 13인치",
                 description = "작년에 산 맥북 프로 2015 13인치 기본형입니다.",
-                price = 800000
+                price = 800000,
+                owner = account
         )
 
         val savedItem = itemRepository.save(item)
@@ -207,6 +205,8 @@ internal class ItemControllerTest {
                 price = -100000
         )
 
+        val accessToken = getAccessToken()
+
         mockMvc.perform(put("/api/items/${savedItem.id?.plus(1)}")
                 .header("Authorization", "Bearer $accessToken")
                 .contentType(MediaType.APPLICATION_JSON_UTF8)
@@ -216,6 +216,40 @@ internal class ItemControllerTest {
                 .andExpect(jsonPath("$.content[0].field").value("price"))
                 .andExpect(jsonPath("$.content[0].rejectedValue").value("-100000"))
                 .andExpect(jsonPath("$.content[0].defaultMessage").hasJsonPath())
+    }
+
+    @Test
+    @DisplayName("작성자가 아닌 사용자가 수정 시 403 Forbidden 응답")
+    fun testModifyItemWithWrongAccount() {
+        val item = Item(
+                name = "맥북 프로 2015 13인치",
+                description = "작년에 산 맥북 프로 2015 13인치 기본형입니다.",
+                price = 800000,
+                owner = account
+        )
+
+        val savedItem = itemRepository.save(item)
+
+        val updatedItem = Item(
+                name = "맥북 프로 2015 13인치",
+                description = "작년에 산 맥북 프로 2015 13인치 기본형입니다. 50만원으로 가격 인하합니다.",
+                price = 100000
+        )
+
+        val newAccount = Account(
+                email = "test02@email.com",
+                password = "test02",
+                roles = setOf(AccountRole.USER)
+        )
+        accountService.createAccount(newAccount)
+
+        val accessToken = getAccessToken(email = newAccount.email, password = newAccount.password)
+
+        mockMvc.perform(put("/api/items/${savedItem.id}")
+                .header("Authorization", "Bearer $accessToken")
+                .contentType(MediaType.APPLICATION_JSON_UTF8)
+                .content(jacksonObjectMapper().writeValueAsString(updatedItem)))
+                .andExpect(status().isForbidden)
     }
 
     @Test
@@ -393,7 +427,7 @@ internal class ItemControllerTest {
                 )))
     }
 
-    private fun getAccessToken(): String {
+    private fun getAccessToken(email: String = this.email, password: String = this.password): String {
         val result = mockMvc.perform(post("/oauth/token")
                 .with(SecurityMockMvcRequestPostProcessors.httpBasic(myAppProperties.clientId, myAppProperties.clientSecret))
                 .accept(MediaType.APPLICATION_JSON_UTF8)

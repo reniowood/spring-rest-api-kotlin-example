@@ -20,9 +20,9 @@ class AccountService(val accountRepository: AccountRepository): UserDetailsServi
         return AccountAdapter(account)
     }
 
-    fun createAccount(account: Account) {
+    fun createAccount(account: Account): Account {
         val passwordEncodedAccount = account.copy(password = passwordEncoder.encode(account.password))
 
-        accountRepository.save(passwordEncodedAccount)
+        return accountRepository.save(passwordEncodedAccount)
     }
 }
